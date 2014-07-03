@@ -14,10 +14,10 @@
       user: name=ceph shell=/bash/bash group=admin
 
     - name: setup ssh dir
-      file: /home/ceph/.ssh state=directory mode=0700 owner=ceph group=ceph
+      file: name=/home/ceph/.ssh state=directory mode=0700 owner=ceph group=admin
 
     - name: add keys
-      copy: src=files/ceph_key dest=/home/ceph/.ssh/id_rsa owner=ceph group=ceph mode=0600
+      copy: src=files/ceph_key dest=/home/ceph/.ssh/id_rsa owner=ceph group=admin mode=0600
 
     - name: setup ssh access
       authorized_key: user=ceph key="{{ item }}"
