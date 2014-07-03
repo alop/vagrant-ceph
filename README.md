@@ -1,6 +1,6 @@
 #Vagrant Ceph
-A quick and dirty way to setup a ceph cluster in vagrant
-
+A quick and dirty way to setup a ceph cluster in vagrant.
+Obviously requires [vagrant](http://vagrantup.com) and [virtualbox](http://virtualbox.org)
 ## Usage
 
 Due to the complexity of vagrant load order and provisioning, it is important to run the initial up without provisioning, then after all the machines are up, run provision:
