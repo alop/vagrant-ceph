@@ -30,6 +30,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
         v.customize ['storageattach', :id, '--storagectl', 'SATA Controller', '--port', 2, '--device', 0, '--type', 'hdd', '--medium', "./ceph_disk_#{i}b.vdi"] 
       end
     end
+    config.ssh.forward_agent = true
 
   end
 
@@ -40,6 +41,13 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
      "ceph" => ["ceph1", "ceph2", "ceph3"]
     }
     ansible.sudo = true
+    ansible.playbook = "ansible/setup.yml"
+  end
+  config.vm.provision "ansible" do |ansible|
+    ansible.groups = {
+      "admin" => ["admin"],
+      "ceph" => ["ceph1","ceph2","ceph3"]
+    }
     ansible.playbook = "ansible/ceph.yml"
   end
 

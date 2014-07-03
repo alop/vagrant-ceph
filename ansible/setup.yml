@@ -1,0 +1,19 @@
+---
+- hosts: all
+  tasks:
+    - name: upgrade packages
+      apt: upgrade=dist update_cache=yes dpkg_options='force-confold,force-confdef'
+
+    - name: Add ceph key
+      apt_key: url=https://ceph.com/git/?p=ceph.git;a=blob_plain;f=keys/release.asc state=present
+
+    - name: Add ceph repo
+      apt_repository: repo='deb http://ceph.com/debian-firefly/ precise main' state=present
+
+    - name: setup hosts file
+      template: dest=/etc/hosts src=hosts.j2
+
+- hosts: admin
+  tasks:
+    - name: Add ceph-deploy
+      apt: name=ceph-deploy state=present update_cache=yes

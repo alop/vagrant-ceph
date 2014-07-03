@@ -1,83 +1,59 @@
 ---
-- hosts: all
-  tasks:
-    - name: upgrade packages
-      apt: upgrade=dist update_cache=yes dpkg_options='force-confold,force-confdef'
-
-    - name: Add ceph key
-      apt_key: url=https://ceph.com/git/?p=ceph.git;a=blob_plain;f=keys/release.asc state=present
-
-    - name: Add ceph repo
-      apt_repository: repo='deb http://ceph.com/debian-firefly/ precise main' state=present
-
-    - name: create ceph user
-      user: name=ceph shell=/bin/bash group=admin
-
-    - name: setup ssh dir
-      file: name=/home/ceph/.ssh state=directory mode=0700 owner=ceph group=admin
-
-    - name: add keys
-      copy: src=files/ceph_key dest=/home/ceph/.ssh/id_rsa owner=ceph group=admin mode=0600
-
-    - name: setup ssh access
-      authorized_key: user=ceph key="{{ item }}"
-      with_file:
-        - files/ceph_key.pub
-
-    - name: setup hosts file
-      template: dest=/etc/hosts src=hosts.j2
-
 - hosts: admin
   tasks:
-    - name: Add ceph-deploy
-      apt: name=ceph-deploy state=present update_cache=yes
+
+    - name: setup private key
+      copy: src=~/.vagrant.d/insecure_private_key dest=/home/vagrant/.ssh/id_rsa            mode=0600
+
+    - name: create ssh config
+      file: path=/home/vagrant/.ssh/config state=touch
 
     - name: disable strict host checking
-      lineinfile: dest=/home/ceph/.ssh/config regexp='StrictHost' line="StricthostKeyChecking no"
+      lineinfile: dest=/home/vagrant/.ssh/config regexp='StrictHost' line="StricthostKeyChecking no"
 
     - name: Cluster directory
-      file: name=/home/ceph/cluster state=directory owner=ceph
+      file: name=/home/vagrant/cluster state=directory owner=vagrant
 
     - name: create the new cluster
-      command: /usr/bin/ceph-deploy new ceph1 chdir=/home/ceph/cluster 
+      command: /usr/bin/ceph-deploy new ceph1 chdir=/home/vagrant/cluster 
                 creates=/home/ceph/cluster/ceph.conf
 
     - name: tweak osd pool size
-      lineinfile: dest=/home/ceph/cluster/ceph.conf regexp=osd line="osd pool default size = 2"
+      lineinfile: dest=/home/vagrant/cluster/ceph.conf regexp=osd line="osd pool default size = 2"
 
     - name: install ceph
-      command: /usr/bin/ceph-deploy install admin ceph1 ceph2 ceph3
+      command: /usr/bin/ceph-deploy install admin ceph1 ceph2 ceph3 chdir=/home/vagrant/cluster
 
     - name: create initial monitors
-      command: /usr/bin/ceph-deploy mon create-initial
+      command: /usr/bin/ceph-deploy mon create-initial chdir=/home/vagrant/cluster
 
     - name: prepare osd sdb
-      command: /usr/bin/ceph-deploy osd prepare {{ item }}:/dev/sdb
+      command: /usr/bin/ceph-deploy osd prepare {{ item }}:/dev/sdb chdir=/home/vagrant/cluster
       with_items:
         - ceph1
         - ceph2
         - ceph3
 
     - name: prepare osd sdc
-      command: /usr/bin/ceph-deploy osd prepare {{ item }}:/dev/sdc
+      command: /usr/bin/ceph-deploy osd prepare {{ item }}:/dev/sdc chdir=/home/vagrant/cluster
       with_items:
         - ceph1
         - ceph2
         - ceph3
 
     - name: activeate osd sdb
-      command: /usr/bin/ceph-deploy osd activate {{ item }}:/dev/sdb1:/dev/sdb2
+      command: /usr/bin/ceph-deploy osd activate {{ item }}:/dev/sdb1:/dev/sdb2 chdir=/home/vagrant/cluster
       with_items:
         - ceph1
         - ceph2
         - ceph3
 
     - name: activeate osd sdc
-      command: /usr/bin/ceph-deploy osd activate {{ item }}:/dev/sdc1:/dev/sdc2
+      command: /usr/bin/ceph-deploy osd activate {{ item }}:/dev/sdc1:/dev/sdc2 chdir=/home/vagrant/cluster
       with_items:
         - ceph1
         - ceph2
         - ceph3
 
     - name: Deploy config and keyrings
-      command: /usr/bin/ceph-deploy admin admin ceph1 ceph2 ceph3
+      command: /usr/bin/ceph-deploy admin admin ceph1 ceph2 ceph3 chdir=/home/vagrant/cluster
