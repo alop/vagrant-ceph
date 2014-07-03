@@ -35,12 +35,12 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   # Ansible prodvisioning
   config.vm.provision "ansible" do |ansible|
-    ansible.sudo = true
-    ansible.playbook = "ansible/ceph.yml"
     ansible.groups = {
      "admin" => ["admin"],
      "ceph" => ["ceph1", "ceph2", "ceph3"]
     }
+    ansible.sudo = true
+    ansible.playbook = "ansible/ceph.yml"
   end
 
 end
